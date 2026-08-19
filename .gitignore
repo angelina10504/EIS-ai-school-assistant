@@ -1,0 +1,29 @@
+# python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+*.db
+
+# node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# env & credentials — never commit these.
+# Broad on purpose: .env.backup, .env.old and friends leak keys just as fast as .env.
+.env*
+!.env.example
+!.env.local.example
+service-account.json
+*service-account*.json
+*credentials*.json
+*.pem
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/

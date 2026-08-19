@@ -1,0 +1,37 @@
+{
+  "$comment": "Single source of truth for the role/intent permission matrix. app/auth/permissions.py is asserted against this file by tests/test_shared_contract.py, so the backend and the frontend cannot drift.",
+  "roles": ["student", "parent", "teacher", "principal"],
+  "intents": ["view_attendance", "mark_attendance", "view_analytics", "escalate", "general_chat"],
+  "scopes": ["self", "linked_child", "own_class", "school", "any", "none"],
+  "matrix": {
+    "student": {
+      "view_attendance": "self",
+      "mark_attendance": "none",
+      "view_analytics": "none",
+      "escalate": "any",
+      "general_chat": "any"
+    },
+    "parent": {
+      "view_attendance": "linked_child",
+      "mark_attendance": "none",
+      "view_analytics": "none",
+      "escalate": "any",
+      "general_chat": "any"
+    },
+    "teacher": {
+      "view_attendance": "own_class",
+      "mark_attendance": "own_class",
+      "view_analytics": "none",
+      "escalate": "none",
+      "general_chat": "any"
+    },
+    "principal": {
+      "view_attendance": "none",
+      "mark_attendance": "none",
+      "view_analytics": "school",
+      "escalate": "none",
+      "general_chat": "any"
+    }
+  },
+  "languages": ["en", "hi", "ta", "te", "mr", "bn", "gu", "pa", "kn", "ml", "ur"]
+}
