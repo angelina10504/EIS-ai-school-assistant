@@ -21,6 +21,7 @@ from app.graph.nodes import (
     tool_executor,
 )
 from app.graph.state import new_state
+from app.tools.escalation_tools import resolve_escalation_target
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -96,6 +97,17 @@ def confirm(
             requires_confirmation=False,
             data={"kind": "escalation_cancelled"},
         )
+
+    # The user may have picked the other option in the UI. Re-resolve the target so
+    # the reply names the right person; the value itself is bounded by the schema
+    # and re-checked inside request_escalation.
+    if payload.target_role and payload.target_role != outstanding.target_role:
+        resolved = resolve_escalation_target(
+            db, target_role=payload.target_role, student_id=outstanding.student_id
+        )
+        outstanding.target_role = payload.target_role
+        outstanding.target_name = resolved["target_name"]
+        pending.put(outstanding)
 
     # Reuse the graph's own nodes so the audit log and memory stay consistent.
     state = new_state(

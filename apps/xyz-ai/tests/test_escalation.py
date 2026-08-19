@@ -100,3 +100,58 @@ def test_student_escalates_to_management(db, users, conversation):
 
     state = run_turn(db=db, user_id=arjun.id, session_id=session_id, message="yes please")
     assert state["tool_result"]["ticket_ref"].startswith("MGM-")
+
+
+def test_offer_presents_both_routes(db, users, conversation):
+    """The brief names 'Talk to Teacher' and 'Contact School Management' as options."""
+    sunita = users["Sunita Verma"]
+    state = run_turn(
+        db=db,
+        user_id=sunita.id,
+        session_id=conversation(sunita),
+        message="I'm not satisfied, I want to speak to someone",
+    )
+    options = state["tool_result"]["options"]
+    assert {o["target_role"] for o in options} == {"teacher", "management"}
+    # Both are named, so the UI can offer a real choice rather than a bare yes/no.
+    by_role = {o["target_role"]: o["target_name"] for o in options}
+    assert by_role["teacher"] == "Anita Sharma"
+    assert by_role["management"] == "Dr. Meera Iyer"
+    assert sum(1 for o in options if o["recommended"]) == 1
+
+
+def test_confirming_the_other_route_switches_the_target(client, login):
+    """Picking the option the classifier did not infer must be honoured."""
+    farah = login("farah@parent.xyz.edu")
+    offer = client.post(
+        "/api/chat",
+        json={"session_id": farah["session_id"], "message": "I want to talk to the teacher"},
+        headers=farah["headers"],
+    ).json()
+    assert offer["data"]["target_role"] == "teacher"
+
+    done = client.post(
+        "/api/chat/confirm",
+        json={"session_id": farah["session_id"], "target_role": "management"},
+        headers=farah["headers"],
+    ).json()
+    assert done["data"]["ok"] is True
+    assert done["data"]["target_role"] == "management"
+    assert done["data"]["ticket_ref"].startswith("MGM-")
+    assert done["data"]["target_name"] == "Dr. Meera Iyer"
+
+
+def test_confirm_rejects_an_invalid_target(client, login):
+    """The override is bounded by the schema — not free text from the client."""
+    farah = login("farah@parent.xyz.edu")
+    client.post(
+        "/api/chat",
+        json={"session_id": farah["session_id"], "message": "connect me to the teacher"},
+        headers=farah["headers"],
+    )
+    response = client.post(
+        "/api/chat/confirm",
+        json={"session_id": farah["session_id"], "target_role": "principal_direct_line"},
+        headers=farah["headers"],
+    )
+    assert response.status_code == 422

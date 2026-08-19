@@ -134,11 +134,30 @@ def _handle_escalation(state: ConversationState, today: date_cls) -> Conversatio
             reason=(slots.get("reason") or state.get("message", ""))[:500],
         )
     )
+    # The brief asks for both routes to be offered by name, so resolve the other
+    # one too and let the client show a real choice rather than a single yes/no.
+    alternative_role = "management" if target_role == "teacher" else "teacher"
+    alternative = resolve_escalation_target(
+        session, target_role=alternative_role, student_id=student_id
+    )
+
     state["requires_confirmation"] = True
     state["tool_result"] = {
         "kind": "escalation_offer",
         "target_role": target_role,
         "target_name": target["target_name"],
+        "options": [
+            {
+                "target_role": target_role,
+                "target_name": target["target_name"],
+                "recommended": True,
+            },
+            {
+                "target_role": alternative_role,
+                "target_name": alternative["target_name"],
+                "recommended": False,
+            },
+        ],
     }
     return state
 

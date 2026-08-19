@@ -54,10 +54,17 @@ export const api = {
       token,
     ),
 
-  confirm: (token: string, sessionId: string, confirm: boolean) =>
+  confirm: (token: string, sessionId: string, confirm: boolean, targetRole?: string) =>
     request<ChatResponse>(
       "/api/chat/confirm",
-      { method: "POST", body: JSON.stringify({ session_id: sessionId, confirm }) },
+      {
+        method: "POST",
+        body: JSON.stringify({
+          session_id: sessionId,
+          confirm,
+          ...(targetRole ? { target_role: targetRole } : {}),
+        }),
+      },
       token,
     ),
 

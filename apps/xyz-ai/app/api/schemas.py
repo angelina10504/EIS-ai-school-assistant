@@ -48,6 +48,11 @@ class ChatResponse(BaseModel):
 class ConfirmRequest(BaseModel):
     session_id: str
     confirm: bool = True
+    # The assessment asks the assistant to offer "Talk to Teacher" and "Contact
+    # School Management" as choices, so the user may pick a different target from
+    # the one the classifier inferred. Constrained to the two valid values here and
+    # re-validated in request_escalation.
+    target_role: Literal["teacher", "management"] | None = None
 
 
 class MarkAttendanceRequest(BaseModel):

@@ -145,10 +145,6 @@ html, body {
 .toggle { display: flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; color: var(--muted); cursor: pointer; }
 
 .portal__body { display: grid; grid-template-columns: 250px 1fr; gap: 1rem; padding: 1rem; flex: 1; min-height: 0; }
-@media (max-width: 820px) {
-  .portal__body { grid-template-columns: 1fr; }
-  .portal__avatar { flex-direction: row; align-items: center; }
-}
 
 .portal__avatar {
   background: var(--surface);
@@ -451,3 +447,80 @@ html, body {
 .weekday--bad { border-top-color: var(--bad); }
 .weekday__day { font-size: 0.66rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .weekday__pct { font-size: 0.8rem; font-weight: 650; }
+
+/* --- escalation route choice ---------------------------------------------- */
+.routes { display: grid; gap: 0.5rem; margin-bottom: 1.1rem; }
+.route {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border-radius: 11px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, transform 0.05s ease;
+}
+.route:hover:not(:disabled) { border-color: var(--accent); }
+.route:active:not(:disabled) { transform: translateY(1px); }
+.route:disabled { opacity: 0.5; cursor: not-allowed; }
+.route--suggested { border-color: var(--accent); }
+.route__label { display: flex; align-items: center; gap: 0.45rem; font-weight: 650; font-size: 0.88rem; }
+.route__tag {
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 0.02rem 0.4rem;
+}
+.route__name { font-size: 0.76rem; color: var(--muted); }
+
+/* --- responsive -----------------------------------------------------------
+   Must live at the end of the file: these rules share specificity with the
+   base ones, so ordering is what decides the winner.                        */
+@media (max-width: 820px) {
+  /* auto/1fr so the identity strip is content-height and the chat takes the rest;
+     without this the grid splits the viewport evenly between the two. */
+  .portal__body { grid-template-columns: 1fr; grid-template-rows: auto 1fr; gap: 0.6rem; padding: 0.6rem; }
+
+  /* The avatar becomes a slim identity strip so the conversation — the actual
+     product — is on screen the moment a parent opens this on a phone. */
+  .portal__avatar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.7rem;
+    padding: 0.55rem 0.75rem;
+  }
+  .avatar { width: 56px; flex: 0 0 56px; }
+  .avatar__badge { display: none; }
+  .portal__avatar-caption { text-align: left; flex: 1; }
+  .portal__avatar-caption strong { font-size: 0.85rem; }
+  .portal__avatar-caption span { font-size: 0.7rem; }
+  .trace { display: none; }
+
+  .portal__header { padding: 0.6rem 0.75rem; gap: 0.5rem; }
+  .brand h1 { font-size: 0.95rem; }
+  .brand p { font-size: 0.7rem; }
+  .portal__controls { gap: 0.4rem; }
+  .lang__caption { display: none; }
+
+  .bubble { max-width: 88%; }
+  .chat__scroll { padding: 0.8rem; }
+  .composer { padding: 0.6rem 0.75rem 0.75rem; }
+  .mic__label { display: none; }
+  .suggestions { padding: 0 0.75rem 0.35rem; }
+}
+
+@media (max-width: 420px) {
+  .card__kpis { grid-template-columns: 1fr; gap: 0.4rem; }
+  .weekday__day { font-size: 0.6rem; }
+  .bar { grid-template-columns: 56px 1fr 38px; }
+}

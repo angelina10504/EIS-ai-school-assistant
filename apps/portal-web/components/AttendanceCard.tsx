@@ -13,6 +13,7 @@ export function AttendanceCard({ data }: Props) {
           <span className="card__name">{data.student_name}</span>
           <span className="card__meta">
             {data.roll_number} · {data.class_name}
+            {data.total_days ? ` · ${data.total_days} school days` : ""}
           </span>
         </div>
         <div className="card__figure">{data.percentage}%</div>
@@ -50,7 +51,9 @@ export function AttendanceCard({ data }: Props) {
         <div className="card__head">
           <div>
             <span className="card__name">School-wide Analytics</span>
-            <span className="card__meta">Last {data.window_days} days · {data.records_considered} records</span>
+            <span className="card__meta">
+              {data.school_days_counted ?? data.window_days} school days · {data.records_considered} records
+            </span>
           </div>
           {data.trend_direction && (
             <span className={`card__trend-badge ${trendClass}`}>

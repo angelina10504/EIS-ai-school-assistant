@@ -25,12 +25,18 @@ logger = logging.getLogger(__name__)
 # "I offered" for "I did it", or answer about the wrong day.
 _INSTRUCTIONS = {
     "attendance": (
-        "Report these exact figures. If on_date is present, the user asked about that "
-        "specific date — answer about that date and no other, and say plainly when "
-        "recorded is false."
+        "Report these exact figures. Describe the period as total_days school days "
+        "('30 of 35 school days'). window_days is an internal calendar lookback — "
+        "never quote it, since a parent would hear '90 days' as 90 days of school. "
+        "If on_date is present, the user asked about that specific date — answer "
+        "about that date and no other, and say plainly when recorded is false."
     ),
     "mark_attendance": "Confirm exactly what was recorded, including the date.",
-    "analytics": "Lead with overall_percentage. Never name an individual student.",
+    "analytics": (
+        "Lead with overall_percentage. Describe the period as school_days_counted "
+        "school days, never window_days (an internal calendar lookback). Never name "
+        "an individual student."
+    ),
     "roster": "List the students in these classes and nothing else.",
     "clarification": "Ask this question and wait. Do not guess an answer.",
     "permission_denied": "Explain this limit warmly in one sentence. Do not offer a workaround.",

@@ -9,7 +9,7 @@ import type { ChatMessage, ChatResponse, Role } from "@/lib/types";
 import { AttendanceCard } from "./AttendanceCard";
 import { AvatarController, type SpeechPayload } from "./Avatar/AvatarController";
 import type { AvatarState } from "./Avatar/AvatarFace";
-import { EscalationModal } from "./EscalationModal";
+import { EscalationModal, type EscalationOption } from "./EscalationModal";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { VoiceInput } from "./VoiceInput";
 
@@ -28,7 +28,7 @@ export function ChatWindow({ role }: { role: Role }) {
   const [language, setLanguage] = useState("en");
   const [voiceReplies, setVoiceReplies] = useState(false);
   const [speech, setSpeech] = useState<SpeechPayload | null>(null);
-  const [pendingEscalation, setPendingEscalation] = useState<{ name: string; role: string } | null>(null);
+  const [escalationOptions, setEscalationOptions] = useState<EscalationOption[] | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [showTrace, setShowTrace] = useState(false);
@@ -100,12 +100,16 @@ export function ChatWindow({ role }: { role: Role }) {
       setLastTrace(result.trace);
       if (result.language && result.language !== language) setLanguage(result.language);
       if (result.requires_confirmation && result.data?.kind === "escalation_offer") {
-        setPendingEscalation({
-          name: String(result.data.target_name ?? "the teacher"),
-          role: String(result.data.target_role ?? "teacher"),
-        });
+        const offered = (result.data.options as EscalationOption[] | undefined) ?? [
+          {
+            target_role: String(result.data.target_role ?? "teacher"),
+            target_name: String(result.data.target_name ?? "the teacher"),
+            recommended: true,
+          },
+        ];
+        setEscalationOptions(offered);
       } else {
-        setPendingEscalation(null);
+        setEscalationOptions(null);
       }
       void speak(result.response, result.language || language);
     },
@@ -136,12 +140,12 @@ export function ChatWindow({ role }: { role: Role }) {
     [session, thinking, applyResponse, router],
   );
 
-  const confirmEscalation = async (confirmed: boolean) => {
+  const confirmEscalation = async (confirmed: boolean, targetRole?: string) => {
     if (!session) return;
     setConfirming(true);
     try {
-      const result = await api.confirm(session.token, session.sessionId, confirmed);
-      setPendingEscalation(null);
+      const result = await api.confirm(session.token, session.sessionId, confirmed, targetRole);
+      setEscalationOptions(null);
       applyResponse(result);
     } catch (error) {
       setNotice(error instanceof ApiError ? error.message : "Couldn't submit that request.");
@@ -175,7 +179,7 @@ export function ChatWindow({ role }: { role: Role }) {
     setSession(updated);
     saveSession(updated);
     setMessages([{ id: uid(), sender: "assistant", text: config.greeting(session.user.name) }]);
-    setPendingEscalation(null);
+    setEscalationOptions(null);
   };
 
   const suggestions = useMemo(() => config.suggestions, [config]);
@@ -293,11 +297,10 @@ export function ChatWindow({ role }: { role: Role }) {
       </main>
 
       <EscalationModal
-        open={pendingEscalation !== null}
-        targetName={pendingEscalation?.name ?? ""}
-        targetRole={pendingEscalation?.role ?? "teacher"}
+        open={escalationOptions !== null}
+        options={escalationOptions ?? []}
         busy={confirming}
-        onConfirm={() => void confirmEscalation(true)}
+        onConfirm={(targetRole) => void confirmEscalation(true, targetRole)}
         onCancel={() => void confirmEscalation(false)}
       />
     </div>

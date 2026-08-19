@@ -146,6 +146,9 @@ def get_attendance_analytics(session: Session, *, scope: str = "school", days: i
         "total_students": len(students),
         "total_classes": len(classes),
         "records_considered": len(records),
+        # Distinct days that actually have attendance, which is what a person means
+        # by "how long" — window_days is just the SQL lookback.
+        "school_days_counted": len(all_dates),
         "trend_direction": trend_direction,
         "trend_change": trend_change,
         "recent_daily_trend": recent_daily_trend,
