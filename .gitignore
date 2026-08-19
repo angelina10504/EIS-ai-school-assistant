@@ -27,3 +27,6 @@ service-account.json
 .DS_Store
 .idea/
 .vscode/
+
+# local dev preview config — contains machine-specific absolute paths
+.claude/

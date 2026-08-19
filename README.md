@@ -58,7 +58,7 @@ family's child's record — no matter how the message is phrased.
 ### Repository layout
 
 ```
-xyz-ai-school-assistant/
+EIS-ai-school-assistant/
 ├── apps/
 │   ├── portal-web/          Next.js — login + the four role portals
 │   │   ├── app/(auth)/login, app/student, app/parent, app/teacher, app/principal
