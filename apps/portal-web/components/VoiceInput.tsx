@@ -88,7 +88,7 @@ export function VoiceInput({
       onClick={listening ? stop : start}
       disabled={disabled || busy}
       aria-pressed={listening}
-      title={listening ? "Stop recording" : "Speak to XYZ AI"}
+      title={listening ? "Stop recording" : "Speak to EIS AI"}
     >
       {busy ? "…" : listening ? "■" : "🎙"}
       <span className="mic__label">{listening ? "Stop" : busy ? "Transcribing" : "Speak"}</span>

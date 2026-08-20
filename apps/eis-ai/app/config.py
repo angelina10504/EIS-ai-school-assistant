@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_service_role_key: str = ""
     supabase_db_url: str = ""
-    sqlite_path: str = str(BASE_DIR / "xyz_ai.db")
+    sqlite_path: str = str(BASE_DIR / "eis_ai.db")
 
     # Auth
     jwt_secret: str = "dev-only-change-me"

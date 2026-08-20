@@ -21,7 +21,7 @@ from app.mock_services import call_service  # noqa: E402
 
 @pytest.fixture(scope="session", autouse=True)
 def _database():
-    handle, path = tempfile.mkstemp(suffix=".db", prefix="xyz-test-")
+    handle, path = tempfile.mkstemp(suffix=".db", prefix="eis-test-")
     os.close(handle)
     configure_engine(f"sqlite:///{path}")
     create_all()

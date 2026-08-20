@@ -1,7 +1,7 @@
 [project]
-name = "xyz-ai"
+name = "eis-ai"
 version = "0.1.0"
-description = "XYZ AI — human-like school assistant backend (FastAPI + LangGraph + Gemini)"
+description = "EIS AI — human-like school assistant backend (FastAPI + LangGraph + Gemini)"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115",

@@ -1,4 +1,4 @@
-"""XYZ AI backend entrypoint."""
+"""EIS AI backend entrypoint."""
 from __future__ import annotations
 
 import logging
@@ -18,7 +18,7 @@ from app.llm import get_llm
 from app.mock_services import analytics_router, attendance_router, audit_router
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
-logger = logging.getLogger("xyz-ai")
+logger = logging.getLogger("eis-ai")
 
 
 def _export_google_credentials() -> None:
@@ -46,7 +46,7 @@ async def lifespan(_app: FastAPI):
     if not settings.using_postgres:
         create_all()  # SQLite dev mode; on Supabase the schema comes from schema.sql
     logger.info(
-        "XYZ AI starting — db=%s llm=%s",
+        "EIS AI starting — db=%s llm=%s",
         "postgres" if settings.using_postgres else "sqlite",
         get_llm().name,
     )
@@ -54,7 +54,7 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(
-    title="XYZ AI",
+    title="EIS AI",
     description="Human-like school assistant — chat, voice and avatar, for students, parents, teachers and the principal.",
     version="0.1.0",
     lifespan=lifespan,

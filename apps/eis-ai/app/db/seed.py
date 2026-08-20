@@ -41,18 +41,18 @@ ID = {
 
 # name, email, absent-day offsets, late-day offsets (indexes into the weekday list)
 STUDENT_PLAN = [
-    ("00000000-0000-4000-8000-000000000011", "Rahul Verma", "rahul@student.xyz.edu", "8A-01", "8A", [6, 19], [11, 27]),
-    ("00000000-0000-4000-8000-000000000012", "Priya Nair", "priya@student.xyz.edu", "8A-02", "8A", [3], [22]),
-    ("00000000-0000-4000-8000-000000000013", "Arjun Nair", "arjun@student.xyz.edu", "8A-03", "8A", [1, 2, 9, 14, 20, 25, 30], [8]),
-    ("00000000-0000-4000-8000-000000000014", "Sneha Kulkarni", "sneha@student.xyz.edu", "8B-01", "8B", [12], []),
-    ("00000000-0000-4000-8000-000000000015", "Imran Khan", "imran@student.xyz.edu", "8B-02", "8B", [4, 5, 17], [21, 29]),
-    ("00000000-0000-4000-8000-000000000016", "Divya Reddy", "divya@student.xyz.edu", "8B-03", "8B", [7, 16, 23, 28], [2, 13]),
+    ("00000000-0000-4000-8000-000000000011", "Rahul Verma", "rahul@student.eis.edu", "8A-01", "8A", [6, 19], [11, 27]),
+    ("00000000-0000-4000-8000-000000000012", "Priya Nair", "priya@student.eis.edu", "8A-02", "8A", [3], [22]),
+    ("00000000-0000-4000-8000-000000000013", "Arjun Nair", "arjun@student.eis.edu", "8A-03", "8A", [1, 2, 9, 14, 20, 25, 30], [8]),
+    ("00000000-0000-4000-8000-000000000014", "Sneha Kulkarni", "sneha@student.eis.edu", "8B-01", "8B", [12], []),
+    ("00000000-0000-4000-8000-000000000015", "Imran Khan", "imran@student.eis.edu", "8B-02", "8B", [4, 5, 17], [21, 29]),
+    ("00000000-0000-4000-8000-000000000016", "Divya Reddy", "divya@student.eis.edu", "8B-03", "8B", [7, 16, 23, 28], [2, 13]),
 ]
 
 PARENT_PLAN = [
-    ("00000000-0000-4000-8000-000000000021", "Sunita Verma", "sunita@parent.xyz.edu", ["Rahul Verma"]),
-    ("00000000-0000-4000-8000-000000000022", "Ramesh Nair", "ramesh@parent.xyz.edu", ["Priya Nair", "Arjun Nair"]),
-    ("00000000-0000-4000-8000-000000000023", "Farah Khan", "farah@parent.xyz.edu", ["Imran Khan"]),
+    ("00000000-0000-4000-8000-000000000021", "Sunita Verma", "sunita@parent.eis.edu", ["Rahul Verma"]),
+    ("00000000-0000-4000-8000-000000000022", "Ramesh Nair", "ramesh@parent.eis.edu", ["Priya Nair", "Arjun Nair"]),
+    ("00000000-0000-4000-8000-000000000023", "Farah Khan", "farah@parent.eis.edu", ["Imran Khan"]),
 ]
 
 
@@ -88,7 +88,7 @@ def seed(session) -> dict:
         id=ID["principal"],
         role="principal",
         name="Dr. Meera Iyer",
-        email="principal@xyz.edu",
+        email="principal@eis.edu",
         password_hash=hash_password(DEMO_PASSWORD),
         preferred_language="en",
     )
@@ -96,7 +96,7 @@ def seed(session) -> dict:
         id=ID["anita"],
         role="teacher",
         name="Anita Sharma",
-        email="anita@teacher.xyz.edu",
+        email="anita@teacher.eis.edu",
         password_hash=hash_password(DEMO_PASSWORD),
         preferred_language="en",
     )
@@ -104,7 +104,7 @@ def seed(session) -> dict:
         id=ID["vikram"],
         role="teacher",
         name="Vikram Rao",
-        email="vikram@teacher.xyz.edu",
+        email="vikram@teacher.eis.edu",
         password_hash=hash_password(DEMO_PASSWORD),
         preferred_language="en",
     )

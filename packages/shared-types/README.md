@@ -6,6 +6,6 @@ The contract both apps implement.
   supported language codes. This is the **source of truth**.
 - `index.ts` — TypeScript types plus an advisory `mayAttempt()` helper for the UI.
 
-The Python backend keeps its own typed copy in `apps/xyz-ai/app/auth/permissions.py`
+The Python backend keeps its own typed copy in `apps/eis-ai/app/auth/permissions.py`
 so that the authorization path has no runtime file dependency. `tests/test_shared_contract.py`
 asserts the two agree, so they cannot drift silently.

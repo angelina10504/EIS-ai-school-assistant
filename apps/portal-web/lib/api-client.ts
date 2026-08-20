@@ -17,7 +17,7 @@ async function request<T>(path: string, init: RequestInit = {}, token?: string):
   try {
     response = await fetch(`${BASE}${path}`, { ...init, headers });
   } catch {
-    throw new ApiError("Can't reach XYZ AI. Is the backend running on port 8000?", 0);
+    throw new ApiError("Can't reach EIS AI. Is the backend running on port 8000?", 0);
   }
 
   if (!response.ok) {

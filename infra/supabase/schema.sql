@@ -1,4 +1,4 @@
--- XYZ AI — Supabase / Postgres schema
+-- EIS AI — Supabase / Postgres schema
 -- Matches Implementation Guidelines §5. Safe to re-run: drops then recreates.
 
 create extension if not exists "pgcrypto";

@@ -1,4 +1,4 @@
--- XYZ AI — demo data for Supabase / Postgres.
+-- EIS AI — demo data for Supabase / Postgres.
 -- Run after schema.sql. Safe to re-run: it clears the tables first.
 --
 -- Attendance is generated relative to CURRENT_DATE (the last 34 weekdays), so the
@@ -13,18 +13,18 @@ truncate audit_log, conversation_messages, conversation_sessions, escalation_req
 
 -- Fixed UUIDs keep the demo links stable across reseeds.
 insert into users (id, role, name, email, password_hash, preferred_language) values
-  ('00000000-0000-4000-8000-000000000001','principal','Dr. Meera Iyer','principal@xyz.edu','pbkdf2_sha256$120000$xyzaidemosalt0001$4fa4066a8d03fbf490750393952bd734c4c880064b018047cd2afc0097781168','en'),
-  ('00000000-0000-4000-8000-000000000002','teacher','Anita Sharma','anita@teacher.xyz.edu','pbkdf2_sha256$120000$xyzaidemosalt0001$4fa4066a8d03fbf490750393952bd734c4c880064b018047cd2afc0097781168','en'),
-  ('00000000-0000-4000-8000-000000000003','teacher','Vikram Rao','vikram@teacher.xyz.edu','pbkdf2_sha256$120000$xyzaidemosalt0001$4fa4066a8d03fbf490750393952bd734c4c880064b018047cd2afc0097781168','en'),
-  ('00000000-0000-4000-8000-000000000011','student','Rahul Verma','rahul@student.xyz.edu','pbkdf2_sha256$120000$xyzaidemosalt0001$4fa4066a8d03fbf490750393952bd734c4c880064b018047cd2afc0097781168','en'),
-  ('00000000-0000-4000-8000-000000000012','student','Priya Nair','priya@student.xyz.edu','pbkdf2_sha256$120000$xyzaidemosalt0001$4fa4066a8d03fbf490750393952bd734c4c880064b018047cd2afc0097781168','en'),
-  ('00000000-0000-4000-8000-000000000013','student','Arjun Nair','arjun@student.xyz.edu','pbkdf2_sha256$120000$xyzaidemosalt0001$4fa4066a8d03fbf490750393952bd734c4c880064b018047cd2afc0097781168','en'),
-  ('00000000-0000-4000-8000-000000000014','student','Sneha Kulkarni','sneha@student.xyz.edu','pbkdf2_sha256$120000$xyzaidemosalt0001$4fa4066a8d03fbf490750393952bd734c4c880064b018047cd2afc0097781168','en'),
-  ('00000000-0000-4000-8000-000000000015','student','Imran Khan','imran@student.xyz.edu','pbkdf2_sha256$120000$xyzaidemosalt0001$4fa4066a8d03fbf490750393952bd734c4c880064b018047cd2afc0097781168','en'),
-  ('00000000-0000-4000-8000-000000000016','student','Divya Reddy','divya@student.xyz.edu','pbkdf2_sha256$120000$xyzaidemosalt0001$4fa4066a8d03fbf490750393952bd734c4c880064b018047cd2afc0097781168','en'),
-  ('00000000-0000-4000-8000-000000000021','parent','Sunita Verma','sunita@parent.xyz.edu','pbkdf2_sha256$120000$xyzaidemosalt0001$4fa4066a8d03fbf490750393952bd734c4c880064b018047cd2afc0097781168','en'),
-  ('00000000-0000-4000-8000-000000000022','parent','Ramesh Nair','ramesh@parent.xyz.edu','pbkdf2_sha256$120000$xyzaidemosalt0001$4fa4066a8d03fbf490750393952bd734c4c880064b018047cd2afc0097781168','en'),
-  ('00000000-0000-4000-8000-000000000023','parent','Farah Khan','farah@parent.xyz.edu','pbkdf2_sha256$120000$xyzaidemosalt0001$4fa4066a8d03fbf490750393952bd734c4c880064b018047cd2afc0097781168','en');
+  ('00000000-0000-4000-8000-000000000001','principal','Dr. Meera Iyer','principal@eis.edu','pbkdf2_sha256$120000$eisaidemosalt0001$c053d808adb08402a1b4ce00a27c72a0589cfc34c558fd04ffaf8e7ccd23e63a','en'),
+  ('00000000-0000-4000-8000-000000000002','teacher','Anita Sharma','anita@teacher.eis.edu','pbkdf2_sha256$120000$eisaidemosalt0001$c053d808adb08402a1b4ce00a27c72a0589cfc34c558fd04ffaf8e7ccd23e63a','en'),
+  ('00000000-0000-4000-8000-000000000003','teacher','Vikram Rao','vikram@teacher.eis.edu','pbkdf2_sha256$120000$eisaidemosalt0001$c053d808adb08402a1b4ce00a27c72a0589cfc34c558fd04ffaf8e7ccd23e63a','en'),
+  ('00000000-0000-4000-8000-000000000011','student','Rahul Verma','rahul@student.eis.edu','pbkdf2_sha256$120000$eisaidemosalt0001$c053d808adb08402a1b4ce00a27c72a0589cfc34c558fd04ffaf8e7ccd23e63a','en'),
+  ('00000000-0000-4000-8000-000000000012','student','Priya Nair','priya@student.eis.edu','pbkdf2_sha256$120000$eisaidemosalt0001$c053d808adb08402a1b4ce00a27c72a0589cfc34c558fd04ffaf8e7ccd23e63a','en'),
+  ('00000000-0000-4000-8000-000000000013','student','Arjun Nair','arjun@student.eis.edu','pbkdf2_sha256$120000$eisaidemosalt0001$c053d808adb08402a1b4ce00a27c72a0589cfc34c558fd04ffaf8e7ccd23e63a','en'),
+  ('00000000-0000-4000-8000-000000000014','student','Sneha Kulkarni','sneha@student.eis.edu','pbkdf2_sha256$120000$eisaidemosalt0001$c053d808adb08402a1b4ce00a27c72a0589cfc34c558fd04ffaf8e7ccd23e63a','en'),
+  ('00000000-0000-4000-8000-000000000015','student','Imran Khan','imran@student.eis.edu','pbkdf2_sha256$120000$eisaidemosalt0001$c053d808adb08402a1b4ce00a27c72a0589cfc34c558fd04ffaf8e7ccd23e63a','en'),
+  ('00000000-0000-4000-8000-000000000016','student','Divya Reddy','divya@student.eis.edu','pbkdf2_sha256$120000$eisaidemosalt0001$c053d808adb08402a1b4ce00a27c72a0589cfc34c558fd04ffaf8e7ccd23e63a','en'),
+  ('00000000-0000-4000-8000-000000000021','parent','Sunita Verma','sunita@parent.eis.edu','pbkdf2_sha256$120000$eisaidemosalt0001$c053d808adb08402a1b4ce00a27c72a0589cfc34c558fd04ffaf8e7ccd23e63a','en'),
+  ('00000000-0000-4000-8000-000000000022','parent','Ramesh Nair','ramesh@parent.eis.edu','pbkdf2_sha256$120000$eisaidemosalt0001$c053d808adb08402a1b4ce00a27c72a0589cfc34c558fd04ffaf8e7ccd23e63a','en'),
+  ('00000000-0000-4000-8000-000000000023','parent','Farah Khan','farah@parent.eis.edu','pbkdf2_sha256$120000$eisaidemosalt0001$c053d808adb08402a1b4ce00a27c72a0589cfc34c558fd04ffaf8e7ccd23e63a','en');
 
 insert into classes (id, name, teacher_id) values
   ('00000000-0000-4000-8000-0000000000a1','Class 8A','00000000-0000-4000-8000-000000000002'),

@@ -6,10 +6,10 @@ import { api, ApiError } from "@/lib/api-client";
 import { rolePath, saveSession } from "@/lib/session";
 
 const DEMO_ACCOUNTS = [
-  { label: "Student — Rahul Verma", email: "rahul@student.xyz.edu", accent: "#4f7cff" },
-  { label: "Parent — Sunita Verma", email: "sunita@parent.xyz.edu", accent: "#00a389" },
-  { label: "Teacher — Anita Sharma", email: "anita@teacher.xyz.edu", accent: "#7a5cf0" },
-  { label: "Principal — Dr. Meera Iyer", email: "principal@xyz.edu", accent: "#c2683a" },
+  { label: "Student — Rahul Verma", email: "rahul@student.eis.edu", accent: "#4f7cff" },
+  { label: "Parent — Sunita Verma", email: "sunita@parent.eis.edu", accent: "#00a389" },
+  { label: "Teacher — Anita Sharma", email: "anita@teacher.eis.edu", accent: "#7a5cf0" },
+  { label: "Principal — Dr. Meera Iyer", email: "principal@eis.edu", accent: "#c2683a" },
 ];
 
 export default function LoginPage() {
@@ -37,8 +37,8 @@ export default function LoginPage() {
   return (
     <div className="login">
       <div className="login__panel">
-        <span className="brand__mark brand__mark--lg">XYZ</span>
-        <h1>XYZ AI</h1>
+        <span className="brand__mark brand__mark--lg">EIS</span>
+        <h1>EIS AI</h1>
         <p className="login__tagline">
           One assistant, four roles. Your portal is chosen by your account — never by what you type.
         </p>
@@ -52,7 +52,7 @@ export default function LoginPage() {
               required
               autoComplete="username"
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="rahul@student.xyz.edu"
+              placeholder="rahul@student.eis.edu"
             />
           </label>
           <label>

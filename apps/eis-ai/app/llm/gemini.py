@@ -14,7 +14,7 @@ from app.llm.schema import (
 
 logger = logging.getLogger(__name__)
 
-_CLASSIFY_SYSTEM = """You are the intent classifier inside XYZ AI, a school assistant.
+_CLASSIFY_SYSTEM = """You are the intent classifier inside EIS AI, a school assistant.
 The signed-in user's role is: {role}. Today is {today}.
 Call classify_intent exactly once. Extract only what the message (or the immediately
 preceding turns) actually says — never guess a student name that was not mentioned.

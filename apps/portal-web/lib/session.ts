@@ -2,7 +2,7 @@
 
 import type { Role, User } from "./types";
 
-const KEY = "xyz-ai-session";
+const KEY = "eis-ai-session";
 
 export interface StoredSession {
   token: string;

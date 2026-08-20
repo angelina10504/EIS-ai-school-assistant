@@ -42,7 +42,7 @@ BAR = "─" * 78
 
 
 def main() -> None:
-    print(f"{BAR}\nXYZ AI demo — language model: {get_llm().name}\n{BAR}")
+    print(f"{BAR}\nEIS AI demo — language model: {get_llm().name}\n{BAR}")
     with db_session() as session:
         users = {u.name: u for u in session.scalars(select(User)).all()}
         for name, messages in SCENARIOS:
@@ -57,7 +57,7 @@ def main() -> None:
                 )
                 flags = f" [flags: {','.join(state['security_flags'])}]" if state["security_flags"] else ""
                 print(f"  user      > {message}")
-                print(f"  XYZ AI    > {state['response']}")
+                print(f"  EIS AI    > {state['response']}")
                 print(
                     f"             (intent={state['intent']} permitted={state['permitted']}"
                     f" language={state['language']}){flags}\n"
@@ -75,7 +75,7 @@ def main() -> None:
                 db=session, user_id=farah.id, session_id=conversation.id, message=message
             )
             print(f"  user      > {message}")
-            print(f"  XYZ AI    > {state['response']}\n")
+            print(f"  EIS AI    > {state['response']}\n")
         call_service.FORCE_FAILURE = False
 
 

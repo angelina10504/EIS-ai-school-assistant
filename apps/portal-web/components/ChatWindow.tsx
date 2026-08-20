@@ -190,7 +190,7 @@ export function ChatWindow({ role }: { role: Role }) {
     <div className="portal" style={{ ["--accent" as string]: config.accent }}>
       <header className="portal__header">
         <div className="brand">
-          <span className="brand__mark">XYZ</span>
+          <span className="brand__mark">EIS</span>
           <div>
             <h1>{config.title}</h1>
             <p>{config.persona} · signed in as {session.user.name}</p>
@@ -217,11 +217,11 @@ export function ChatWindow({ role }: { role: Role }) {
             speech={speech}
             baseState={avatarState}
             accent={config.accent}
-            label={`XYZ AI ${config.persona}`}
+            label={`EIS AI ${config.persona}`}
             onSpeakingChange={setSpeaking}
           />
           <div className="portal__avatar-caption">
-            <strong>XYZ AI</strong>
+            <strong>EIS AI</strong>
             <span>{config.persona}</span>
           </div>
           <button className="link" onClick={() => setShowTrace((v) => !v)}>
@@ -274,7 +274,7 @@ export function ChatWindow({ role }: { role: Role }) {
             <input
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
-              placeholder="Ask XYZ AI…"
+              placeholder="Ask EIS AI…"
               aria-label="Message"
               disabled={thinking}
             />

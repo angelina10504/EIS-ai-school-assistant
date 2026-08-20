@@ -1,6 +1,6 @@
-# XYZ AI — Human-Like School Assistant
+# EIS AI — Human-Like School Assistant
 
-XYZ AI is a standalone assistant that behaves like a real school front-desk human. One
+EIS AI is a standalone assistant that behaves like a real school front-desk human. One
 account signs you in, and the assistant adapts to who you are — **Student, Parent,
 Teacher or Principal** — with its own persona, its own permissions, and its own set of
 things it is allowed to do. It talks over **chat**, **voice**, and a **2D avatar** that
@@ -31,7 +31,7 @@ family's child's record — no matter how the message is phrased.
                      │      AvatarController ◀──────┘  { audio, marks[] }          │
                      └───────────────────────────────────────────┬─────────────────┘
                                                                  │ JWT bearer
-                     ┌───────────────────────── apps/xyz-ai (FastAPI) ─────────────┐
+                     ┌───────────────────────── apps/eis-ai (FastAPI) ─────────────┐
                      │                                                             │
                      │   LangGraph pipeline (app/graph/graph_builder.py)           │
                      │   ┌───────────────────────────────────────────────────┐     │
@@ -73,7 +73,7 @@ EIS-ai-school-assistant/
 │   │   ├── components/      ChatWindow, Avatar/, VoiceInput, EscalationModal, …
 │   │   │   └── Avatar/visemes.test.ts   7 tests: npm run test:visemes
 │   │   └── lib/             api-client, session, roles, languages
-│   └── xyz-ai/              FastAPI + LangGraph
+│   └── eis-ai/              FastAPI + LangGraph
 │       ├── app/graph/       state, nodes/, graph_builder
 │       ├── app/tools/       attendance, analytics, escalation, scope checks
 │       ├── app/auth/        permission matrix, JWT, audit, guardrails
@@ -123,7 +123,7 @@ EIS-ai-school-assistant/
 ### A note on repository structure
 
 The brief sketches five repositories — `student-portal`, `parent-portal`,
-`management-portal`, `staff-portal` and `xyz-ai`. This submission is one monorepo in which
+`management-portal`, `staff-portal` and `eis-ai`. This submission is one monorepo in which
 the four portals are **role views inside a single Next.js app**, because the alternative
 means four codebases sharing one chat component, one API client and one auth flow, kept in
 sync by hand.
@@ -151,13 +151,13 @@ make install
 or by hand:
 
 ```bash
-cd apps/xyz-ai && uv venv --python python3.12 .venv && VIRTUAL_ENV=.venv uv pip install -e ".[dev]"
+cd apps/eis-ai && uv venv --python python3.12 .venv && VIRTUAL_ENV=.venv uv pip install -e ".[dev]"
 cd ../portal-web && npm install
 ```
 
 ### Environment variables
 
-Copy `apps/xyz-ai/.env.example` to `apps/xyz-ai/.env`:
+Copy `apps/eis-ai/.env.example` to `apps/eis-ai/.env`:
 
 | Variable | Needed for | If missing |
 |---|---|---|
@@ -170,7 +170,7 @@ Copy `apps/xyz-ai/.env.example` to `apps/xyz-ai/.env`:
 For the frontend, copy `apps/portal-web/.env.local.example` to `.env.local` if your
 backend is not on `http://localhost:8000`.
 
-`GOOGLE_APPLICATION_CREDENTIALS` may be a path relative to `apps/xyz-ai/`. The app
+`GOOGLE_APPLICATION_CREDENTIALS` may be a path relative to `apps/eis-ai/`. The app
 resolves it and exports it into the process environment at startup, because Google's
 client libraries read `os.environ` rather than the settings object — putting it in
 `.env` alone is not enough for them, so `app/config.py` bridges the two.
@@ -210,12 +210,12 @@ Password for every account: `password123`
 
 | Role | Email | Notes |
 |---|---|---|
-| Student | `rahul@student.xyz.edu` | 91.2% attendance, Class 8A |
-| Parent | `sunita@parent.xyz.edu` | linked to Rahul only |
-| Parent | `ramesh@parent.xyz.edu` | two children — good for the "which child?" clarification |
-| Teacher | `anita@teacher.xyz.edu` | Class 8A |
-| Teacher | `vikram@teacher.xyz.edu` | Class 8B |
-| Principal | `principal@xyz.edu` | analytics only |
+| Student | `rahul@student.eis.edu` | 91.2% attendance, Class 8A |
+| Parent | `sunita@parent.eis.edu` | linked to Rahul only |
+| Parent | `ramesh@parent.eis.edu` | two children — good for the "which child?" clarification |
+| Teacher | `anita@teacher.eis.edu` | Class 8A |
+| Teacher | `vikram@teacher.eis.edu` | Class 8B |
+| Principal | `principal@eis.edu` | analytics only |
 
 ### Verify
 

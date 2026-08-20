@@ -122,7 +122,7 @@ def test_offer_presents_both_routes(db, users, conversation):
 
 def test_confirming_the_other_route_switches_the_target(client, login):
     """Picking the option the classifier did not infer must be honoured."""
-    farah = login("farah@parent.xyz.edu")
+    farah = login("farah@parent.eis.edu")
     offer = client.post(
         "/api/chat",
         json={"session_id": farah["session_id"], "message": "I want to talk to the teacher"},
@@ -143,7 +143,7 @@ def test_confirming_the_other_route_switches_the_target(client, login):
 
 def test_confirm_rejects_an_invalid_target(client, login):
     """The override is bounded by the schema — not free text from the client."""
-    farah = login("farah@parent.xyz.edu")
+    farah = login("farah@parent.eis.edu")
     client.post(
         "/api/chat",
         json={"session_id": farah["session_id"], "message": "connect me to the teacher"},

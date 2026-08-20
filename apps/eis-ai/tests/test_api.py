@@ -10,7 +10,7 @@ def test_health(client):
 
 def test_login_rejects_bad_credentials(client):
     response = client.post(
-        "/api/session/login", json={"email": "rahul@student.xyz.edu", "password": "wrong"}
+        "/api/session/login", json={"email": "rahul@student.eis.edu", "password": "wrong"}
     )
     assert response.status_code == 401
     assert "Invalid email or password" in response.text
@@ -21,8 +21,8 @@ def test_chat_requires_a_token(client):
 
 
 def test_chat_rejects_someone_elses_session(client, login):
-    rahul = login("rahul@student.xyz.edu")
-    priya = login("priya@student.xyz.edu")
+    rahul = login("rahul@student.eis.edu")
+    priya = login("priya@student.eis.edu")
     response = client.post(
         "/api/chat",
         json={"session_id": priya["session_id"], "message": "my attendance"},
@@ -32,7 +32,7 @@ def test_chat_rejects_someone_elses_session(client, login):
 
 
 def test_chat_roundtrip(client, login):
-    rahul = login("rahul@student.xyz.edu")
+    rahul = login("rahul@student.eis.edu")
     body = client.post(
         "/api/chat",
         json={"session_id": rahul["session_id"], "message": "What is my attendance?"},
@@ -45,7 +45,7 @@ def test_chat_roundtrip(client, login):
 
 
 def test_confirm_without_a_pending_offer_is_a_conflict(client, login):
-    rahul = login("rahul@student.xyz.edu")
+    rahul = login("rahul@student.eis.edu")
     response = client.post(
         "/api/chat/confirm", json={"session_id": rahul["session_id"]}, headers=rahul["headers"]
     )
@@ -53,7 +53,7 @@ def test_confirm_without_a_pending_offer_is_a_conflict(client, login):
 
 
 def test_escalation_over_http(client, login):
-    farah = login("farah@parent.xyz.edu")
+    farah = login("farah@parent.eis.edu")
     offer = client.post(
         "/api/chat",
         json={"session_id": farah["session_id"], "message": "I'm not satisfied, connect me to the teacher"},
@@ -69,7 +69,7 @@ def test_escalation_over_http(client, login):
 
 
 def test_declining_the_offer_writes_nothing(client, login):
-    farah = login("farah@parent.xyz.edu")
+    farah = login("farah@parent.eis.edu")
     client.post(
         "/api/chat",
         json={"session_id": farah["session_id"], "message": "connect me to the teacher please"},
@@ -84,8 +84,8 @@ def test_declining_the_offer_writes_nothing(client, login):
 
 
 def test_rest_attendance_respects_the_matrix(client, login):
-    principal = login("principal@xyz.edu")
-    rahul = login("rahul@student.xyz.edu")
+    principal = login("principal@eis.edu")
+    rahul = login("rahul@student.eis.edu")
 
     # The principal is denied individual records by the matrix, not by prompting.
     denied = client.get(f"/api/attendance/{rahul['user']['id']}", headers=principal["headers"])
@@ -97,8 +97,8 @@ def test_rest_attendance_respects_the_matrix(client, login):
 
 
 def test_rest_mark_attendance_is_teacher_only(client, login):
-    parent = login("sunita@parent.xyz.edu")
-    teacher = login("anita@teacher.xyz.edu")
+    parent = login("sunita@parent.eis.edu")
+    teacher = login("anita@teacher.eis.edu")
 
     blocked = client.post(
         "/api/attendance/mark",
@@ -116,14 +116,14 @@ def test_rest_mark_attendance_is_teacher_only(client, login):
 
 
 def test_rest_analytics_is_principal_only(client, login):
-    teacher = login("anita@teacher.xyz.edu")
-    principal = login("principal@xyz.edu")
+    teacher = login("anita@teacher.eis.edu")
+    principal = login("principal@eis.edu")
     assert client.get("/api/analytics/attendance", headers=teacher["headers"]).status_code == 403
     assert client.get("/api/analytics/attendance", headers=principal["headers"]).status_code == 200
 
 
 def test_audit_endpoint_shows_only_your_own_rows(client, login):
-    rahul = login("rahul@student.xyz.edu")
+    rahul = login("rahul@student.eis.edu")
     client.post(
         "/api/chat",
         json={"session_id": rahul["session_id"], "message": "mark me present"},
@@ -134,7 +134,7 @@ def test_audit_endpoint_shows_only_your_own_rows(client, login):
 
 
 def test_language_switch_persists(client, login):
-    rahul = login("rahul@student.xyz.edu")
+    rahul = login("rahul@student.eis.edu")
     body = client.post(
         "/api/session/language", json={"language": "hi"}, headers=rahul["headers"]
     ).json()
@@ -143,7 +143,7 @@ def test_language_switch_persists(client, login):
 
 
 def test_unsupported_language_is_rejected(client, login):
-    rahul = login("rahul@student.xyz.edu")
+    rahul = login("rahul@student.eis.edu")
     response = client.post(
         "/api/session/language", json={"language": "fr"}, headers=rahul["headers"]
     )

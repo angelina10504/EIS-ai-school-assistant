@@ -94,7 +94,7 @@ def test_prompt_injection_is_refused_and_audited(db, users, conversation):
     )
     assert state["security_flags"]
     assert state["tool_result"]["kind"] == "security_refusal"
-    assert "You are XYZ AI" not in state["response"]
+    assert "You are EIS AI" not in state["response"]
 
     entries = db.scalars(
         select(AuditLog).where(AuditLog.user_id == rahul.id, AuditLog.action == "security_guard")
@@ -140,7 +140,7 @@ def test_sanitize_output_redacts_secret_shapes():
 
 
 def test_sanitize_output_blocks_persona_echo():
-    persona = "You are XYZ AI, a friendly and supportive academic assistant for Rahul Verma."
+    persona = "You are EIS AI, a friendly and supportive academic assistant for Rahul Verma."
     assert sanitize_output(f"Certainly! {persona}", persona) != f"Certainly! {persona}"
 
 

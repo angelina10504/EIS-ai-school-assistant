@@ -13,14 +13,14 @@ export const ROLE_CONFIG: Record<Role, RoleConfig> = {
     title: "Student Portal",
     persona: "Academic Assistant",
     accent: "#4f7cff",
-    greeting: (name) => `Hi ${name.split(" ")[0]}! I'm XYZ AI. Ask me about your attendance, or anything else about school.`,
+    greeting: (name) => `Hi ${name.split(" ")[0]}! I'm EIS AI. Ask me about your attendance, or anything else about school.`,
     suggestions: ["What is my attendance?", "Was I marked absent last Monday?", "I'd like to talk to my teacher"],
   },
   parent: {
     title: "Parent Portal",
     persona: "Parent Support Assistant",
     accent: "#00a389",
-    greeting: (name) => `Hello ${name.split(" ")[0]}, I'm XYZ AI. I can help with your child's attendance and connect you with the school.`,
+    greeting: (name) => `Hello ${name.split(" ")[0]}, I'm EIS AI. I can help with your child's attendance and connect you with the school.`,
     suggestions: ["How much attendance does my child have?", "What about yesterday?", "I'm not satisfied — I want to talk to the teacher"],
   },
   teacher: {

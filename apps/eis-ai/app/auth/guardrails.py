@@ -66,7 +66,7 @@ _SECRET_SHAPES = [
 ]
 
 _PROMPT_LEAK_MARKERS = [
-    "you are xyz ai",
+    "you are eis ai",
     "system prompt:",
     "system instruction",
     "persona prompt",
