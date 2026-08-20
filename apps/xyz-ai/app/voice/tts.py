@@ -12,6 +12,7 @@ import re
 from dataclasses import dataclass
 
 from app.i18n.languages import bcp47, get_language
+from app.voice.resilience import call_with_retry, is_transient
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +70,9 @@ def _client():
             if path.exists():
                 creds = service_account.Credentials.from_service_account_file(str(path))
                 return texttospeech.TextToSpeechClient(credentials=creds), texttospeech
-        return texttospeech.TextToSpeechClient(), texttospeech
+        from app.config import get_settings
+
+        return texttospeech.TextToSpeechClient(transport=get_settings().speech_transport), texttospeech
     except Exception as exc:  # pragma: no cover - missing/invalid credentials
         from app.config import get_settings
 
@@ -103,11 +106,30 @@ def synthesize(text: str, language: str = "en") -> Speech:
         enable_time_pointing=enable_time_pointing,
     )
     try:
-        response = client.synthesize_speech(request=request)
-    except Exception as exc:  # pragma: no cover - voice name may not exist in a region
-        logger.warning("TTS failed with voice %s (%s); retrying with default voice", lang.tts_voice, exc)
+        response = call_with_retry(
+            lambda: client.synthesize_speech(request=request), what="Text-to-Speech"
+        )
+    except Exception as exc:
+        # A named voice may not exist in every region; fall back to the locale's
+        # default before giving up. A transient failure has already been retried.
+        if is_transient(exc):
+            raise SpeechUnavailable(
+                f"Text-to-Speech is temporarily unreachable ({type(exc).__name__}). "
+                "This is usually a network blip — try again."
+            ) from exc
+        logger.warning(
+            "TTS failed with voice %s (%s); retrying with the locale default",
+            lang.tts_voice, type(exc).__name__,
+        )
         request.voice = tts.VoiceSelectionParams(language_code=bcp47(language))
-        response = client.synthesize_speech(request=request)
+        try:
+            response = call_with_retry(
+                lambda: client.synthesize_speech(request=request), what="Text-to-Speech (default voice)"
+            )
+        except Exception as inner:
+            raise SpeechUnavailable(
+                f"Text-to-Speech failed: {type(inner).__name__}: {inner}"
+            ) from inner
 
     marks = [
         Mark(name=tp.mark_name, word=words[int(tp.mark_name[1:])] if tp.mark_name[1:].isdigit() and int(tp.mark_name[1:]) < len(words) else "", seconds=tp.time_seconds)

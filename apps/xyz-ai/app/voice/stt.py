@@ -10,6 +10,7 @@ import logging
 from dataclasses import dataclass
 
 from app.i18n.languages import LANGUAGES, bcp47
+from app.voice.resilience import call_with_retry, is_transient
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,9 @@ def _client():
             if path.exists():
                 creds = service_account.Credentials.from_service_account_file(str(path))
                 return speech.SpeechClient(credentials=creds), speech
-        return speech.SpeechClient(), speech
+        from app.config import get_settings
+
+        return speech.SpeechClient(transport=get_settings().speech_transport), speech
     except Exception as exc:  # pragma: no cover - missing/invalid credentials
         from app.config import get_settings
 
@@ -55,38 +58,71 @@ def _client():
         ) from exc
 
 
+
+def _recognize(client, speech, config, audio_bytes, *, what: str):
+    return call_with_retry(
+        lambda: client.recognize(
+            config=config, audio=speech.RecognitionAudio(content=audio_bytes)
+        ),
+        what=what,
+    )
+
+
+def _config(speech, *, language: str, alternates: list[str], sample_rate: int | None):
+    return speech.RecognitionConfig(
+        encoding=speech.RecognitionConfig.AudioEncoding.WEBM_OPUS,
+        language_code=language,
+        enable_automatic_punctuation=True,
+        **({"alternative_language_codes": alternates} if alternates else {}),
+        **({"sample_rate_hertz": sample_rate} if sample_rate else {}),
+    )
+
+
 def transcribe(audio_bytes: bytes, language: str = "en", *, sample_rate: int | None = None) -> Transcript:
+    """Audio to text, language-aware.
+
+    First pass offers alternative language codes so a code-switched utterance still
+    transcribes. Not every model/region accepts alternates, so a hard failure falls
+    back to the primary language alone. Transient network errors are retried inside
+    `_recognize` and surface as SpeechUnavailable (503) rather than a bare 500.
+    """
     client, speech = _client()
     primary = bcp47(language)
     alternates = [lang.bcp47 for lang in LANGUAGES.values() if lang.bcp47 != primary][:3]
 
-    # Try with alternative language codes
     try:
-        config = speech.RecognitionConfig(
-            encoding=speech.RecognitionConfig.AudioEncoding.WEBM_OPUS,
-            language_code=primary,
-            alternative_language_codes=alternates,
-            enable_automatic_punctuation=True,
-            **({"sample_rate_hertz": sample_rate} if sample_rate else {}),
+        response = _recognize(
+            client, speech,
+            _config(speech, language=primary, alternates=alternates, sample_rate=sample_rate),
+            audio_bytes, what="Speech-to-Text",
         )
-        response = client.recognize(config=config, audio=speech.RecognitionAudio(content=audio_bytes))
     except Exception as exc:
-        logger.warning("STT failed with alternates: %s; retrying with primary language %s only", exc, primary)
+        if is_transient(exc):
+            raise SpeechUnavailable(
+                f"Speech-to-Text is temporarily unreachable ({type(exc).__name__}). "
+                "This is usually a network blip — try again."
+            ) from exc
+
+        logger.warning(
+            "STT failed with alternate languages (%s); retrying with %s only",
+            type(exc).__name__, primary,
+        )
         try:
-            config = speech.RecognitionConfig(
-                encoding=speech.RecognitionConfig.AudioEncoding.WEBM_OPUS,
-                language_code=primary,
-                enable_automatic_punctuation=True,
-                **({"sample_rate_hertz": sample_rate} if sample_rate else {}),
+            response = _recognize(
+                client, speech,
+                _config(speech, language=primary, alternates=[], sample_rate=sample_rate),
+                audio_bytes, what="Speech-to-Text (primary language only)",
             )
-            response = client.recognize(config=config, audio=speech.RecognitionAudio(content=audio_bytes))
         except Exception as retry_exc:
-            logger.error("STT recognize failed completely: %s", retry_exc)
-            raise SpeechUnavailable(f"Speech recognition error: {retry_exc}") from retry_exc
+            raise SpeechUnavailable(
+                f"Speech-to-Text failed: {type(retry_exc).__name__}: {retry_exc}"
+            ) from retry_exc
 
     for result in response.results:
         if result.alternatives:
             best = result.alternatives[0]
             detected = (getattr(result, "language_code", "") or primary).split("-")[0]
-            return Transcript(text=best.transcript.strip(), language=detected, confidence=best.confidence)
+            return Transcript(
+                text=best.transcript.strip(), language=detected, confidence=best.confidence
+            )
     return Transcript(text="", language=language, confidence=0.0)

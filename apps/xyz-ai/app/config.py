@@ -22,6 +22,9 @@ class Settings(BaseSettings):
 
     # Speech
     google_application_credentials: str = ""
+    # gRPC prefers IPv6 and stalls ~3s per call on networks with a broken IPv6
+    # route, sometimes failing outright. REST avoids that and is markedly faster.
+    speech_transport: str = "rest"
 
     # Data
     supabase_url: str = ""

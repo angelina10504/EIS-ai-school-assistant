@@ -10,6 +10,7 @@ interface Props {
   onTranscript: (text: string, language: string) => void;
   onListeningChange?: (listening: boolean) => void;
   onError?: (message: string) => void;
+  onAuthExpired?: () => void;
 }
 
 /** Mic → MediaRecorder → /api/voice/stt → transcript handed back to the chat. */
@@ -20,6 +21,7 @@ export function VoiceInput({
   onTranscript,
   onListeningChange,
   onError,
+  onAuthExpired,
 }: Props) {
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
@@ -47,11 +49,20 @@ export function VoiceInput({
           if (result.transcript) onTranscript(result.transcript, result.language);
           else onError?.("I didn't catch that — could you try again?");
         } catch (error) {
-          onError?.(
-            error instanceof ApiError && error.status === 503
-              ? "Voice needs Google Cloud credentials on the backend. You can still type."
-              : "Speech recognition failed. You can still type.",
-          );
+          // Report what actually went wrong. Blaming speech recognition for an
+          // expired session sends you debugging the microphone for an hour.
+          if (error instanceof ApiError && error.status === 401) {
+            onAuthExpired?.();
+            onError?.("Your session has expired — please sign in again.");
+          } else if (error instanceof ApiError && error.status === 503) {
+            onError?.("Voice needs Google Cloud credentials on the backend. You can still type.");
+          } else if (error instanceof ApiError && error.status === 0) {
+            onError?.("Can't reach the backend. Is it running on port 8000?");
+          } else if (error instanceof ApiError) {
+            onError?.(`Speech recognition failed (${error.status}): ${error.message}`);
+          } else {
+            onError?.("Speech recognition failed. You can still type.");
+          }
         } finally {
           setBusy(false);
         }

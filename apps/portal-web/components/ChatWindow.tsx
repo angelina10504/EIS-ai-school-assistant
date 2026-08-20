@@ -288,6 +288,10 @@ export function ChatWindow({ role }: { role: Role }) {
                 void send(text);
               }}
               onError={setNotice}
+              onAuthExpired={() => {
+                clearSession();
+                router.replace("/login");
+              }}
             />
             <button className="button" type="submit" disabled={thinking || !draft.trim()}>
               Send

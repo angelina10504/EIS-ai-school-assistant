@@ -11,6 +11,14 @@ The interesting part is not that it answers questions. It's that a student canno
 into marking their own attendance, and a parent cannot talk it into reading another
 family's child's record — no matter how the message is phrased.
 
+| | |
+|---|---|
+| **Repository** | https://github.com/angelina10504/EIS-ai-school-assistant |
+| **Demo video** | _(link to be added)_ |
+| **Stack** | FastAPI · LangGraph · Google Gemini · Next.js 15 · Supabase Postgres · Google Cloud STT/TTS |
+| **Tests** | 88 backend (pytest) + 7 avatar (node --test), all passing |
+| **Run it** | `make install && make seed && make api` then `make web` → http://localhost:3000 |
+
 ---
 
 ## 1. Architecture
@@ -47,7 +55,7 @@ family's child's record — no matter how the message is phrased.
 
 | Layer | Choice |
 |---|---|
-| LLM | Google Gemini (`gemini-2.5-flash`, function calling) |
+| LLM | Google Gemini (function calling); default `gemini-3.6-flash`, set via `GEMINI_MODEL` |
 | Orchestration | LangGraph (Python) |
 | Backend | FastAPI |
 | Frontend | Next.js 15 / React 19 — one app, four role views |
@@ -63,6 +71,7 @@ EIS-ai-school-assistant/
 │   ├── portal-web/          Next.js — login + the four role portals
 │   │   ├── app/(auth)/login, app/student, app/parent, app/teacher, app/principal
 │   │   ├── components/      ChatWindow, Avatar/, VoiceInput, EscalationModal, …
+│   │   │   └── Avatar/visemes.test.ts   7 tests: npm run test:visemes
 │   │   └── lib/             api-client, session, roles, languages
 │   └── xyz-ai/              FastAPI + LangGraph
 │       ├── app/graph/       state, nodes/, graph_builder
@@ -73,14 +82,61 @@ EIS-ai-school-assistant/
 │       ├── app/personas/    persona prompt templates
 │       ├── app/i18n/        11 languages, BCP-47 codes, TTS voices
 │       ├── scripts/demo.py  prints a full scripted transcript
-│       └── tests/           79 tests
+│       └── tests/           88 tests
 ├── packages/shared-types/   the permission matrix as shared data + TS types
 └── infra/supabase/          schema.sql, seed.sql
 ```
 
 ---
 
-## 2. Setup
+## 2. What the assessment asked for, and where it lives
+
+| Requirement | Status | Where |
+|---|---|---|
+| Student views own attendance | ✅ | `tools/attendance_tools.get_attendance`, scoped in `tools/scope.py` |
+| Parent views child's attendance | ✅ | same tool; scope derived from `parent_student_link` |
+| Teacher marks attendance | ✅ | `tools/attendance_tools.mark_attendance`, own class only |
+| Principal school analytics | ✅ | `tools/analytics_tools.get_attendance_analytics`, aggregates only |
+| Natural language + conversation history | ✅ | `graph/nodes/memory_loader.py`, `memory_writer.py` |
+| Follow-up questions without restating context | ✅ | history passed to the classifier; see `test_followup_without_restating_context` |
+| Asks for missing information | ✅ | `tool_executor` emits `kind: clarification` |
+| Handles corrections mid-conversation | ✅ | "Sorry, I meant Arjun" re-resolves the subject |
+| Four personas with distinct tone | ✅ | `personas/templates.py`, localized per language |
+| Voice in / voice out | ✅ | `voice/stt.py`, `voice/tts.py`; verified end-to-end in Hindi and Tamil |
+| AI avatar with lip-sync | ✅ | `components/Avatar/`, driven by real SSML `<mark>` timings |
+| Facial expressions | ◐ | four states (idle/listening/thinking/speaking); not content-driven |
+| Real-time conversation | ◐ | turn-based; no token streaming or barge-in |
+| "Talk to Teacher" / "Contact School Management" | ✅ | both offered by name in `EscalationModal` |
+| Mock call/support request, only after confirmation | ✅ | `mock_services/call_service.py`; nothing written before "yes" |
+| Never claims contact unless confirmed | ✅ | pinned wording + `test_failed_dispatch_never_claims_contact` |
+| 11 languages | ✅ | `i18n/languages.py` |
+| Prompt injection | ✅ | §4 |
+| Unauthorized data access | ✅ | §4 |
+| System-prompt extraction | ✅ | §4 |
+| API-key extraction | ✅ | §4 |
+| Fake role claims | ✅ | §4 |
+| Unauthorized actions | ✅ | §4 |
+| Authorization at the tool layer, not the prompt | ✅ | `auth/permissions.py` — plain code, no LLM |
+
+◐ = partially met; see [Known limitations](#8-known-limitations).
+
+### A note on repository structure
+
+The brief sketches five repositories — `student-portal`, `parent-portal`,
+`management-portal`, `staff-portal` and `xyz-ai`. This submission is one monorepo in which
+the four portals are **role views inside a single Next.js app**, because the alternative
+means four codebases sharing one chat component, one API client and one auth flow, kept in
+sync by hand.
+
+The property the brief actually cares about is preserved and strengthened: a role sees only
+its own capabilities. That is enforced server-side by `auth/permissions.py` and re-checked
+in every tool, so it holds no matter which URL is opened — whereas four separate frontends
+would still have needed exactly the same backend gate to be secure. The role views live in
+`apps/portal-web/app/{student,parent,teacher,principal}/`.
+
+---
+
+## 3. Setup
 
 ### Prerequisites
 
@@ -106,7 +162,7 @@ Copy `apps/xyz-ai/.env.example` to `apps/xyz-ai/.env`:
 | Variable | Needed for | If missing |
 |---|---|---|
 | `GEMINI_API_KEY` | natural language understanding + generation | falls back to a deterministic offline classifier (see §6) |
-| `GEMINI_MODEL` | — | defaults to `gemini-2.5-flash` |
+| `GEMINI_MODEL` | — | defaults to `gemini-3.6-flash`; any current Gemini model works |
 | `GOOGLE_APPLICATION_CREDENTIALS` | voice in and out | `/api/voice/*` returns 503; chat still works |
 | `SUPABASE_DB_URL` | Postgres persistence | falls back to a local SQLite file |
 | `JWT_SECRET` | session tokens | a dev default is used — **set this** |
@@ -164,14 +220,23 @@ Password for every account: `password123`
 ### Verify
 
 ```bash
-make test    # 79 backend tests
+make test    # 88 backend tests
 make check   # tests + frontend typecheck + production build
 make demo    # prints a scripted transcript of every scenario in the brief
 ```
 
+The avatar has its own suite, run from `apps/portal-web`:
+
+```bash
+npm run test:visemes    # 7 tests — mouth shapes across all 11 scripts
+```
+
+`make demo` writes to the database (it marks attendance and creates escalation rows), so
+run `make seed` afterwards if you are about to demo.
+
 ---
 
-## 3. How role-based security is enforced
+## 4. How role-based security is enforced
 
 The rule the whole design follows: **the model decides what the user probably wants; plain
 code decides what is allowed to happen.**
@@ -219,7 +284,7 @@ call_service.FORCE_FAILURE = True
 
 ---
 
-## 4. API
+## 5. API
 
 | Endpoint | Purpose |
 |---|---|
@@ -239,7 +304,7 @@ Interactive docs: `http://localhost:8000/docs`.
 
 ---
 
-## 5. Voice and the avatar
+## 6. Voice and the avatar
 
 ```
 mic → MediaRecorder(webm/opus) → /api/voice/stt → transcript → /api/chat
@@ -259,7 +324,7 @@ the backend, and swapping the SVG rig for a Lottie or Rive rig is a change to
 
 ---
 
-## 6. Running without API keys
+## 7. Running without API keys
 
 With no `GEMINI_API_KEY`, the app boots into an **offline provider** (`app/llm/offline.py`):
 a deterministic keyword classifier plus templated replies. Every architectural claim above
@@ -273,15 +338,23 @@ English** even when the language is correctly detected as Hindi or Tamil. Set
 
 ---
 
-## 7. Known limitations
+## 8. Known limitations
 
-- **Free-tier Gemini quota is per model and small** (20 requests/day on
-  `gemini-3.6-flash`). When it runs out the app falls back to templated English replies
-  and logs `Gemini quota exhausted` — it does not crash, but the demo stops looking
-  natural. Set `GEMINI_MODEL` to another model, or enable billing, before recording.
-- **`gemini-3.5-flash-lite` is noticeably weaker** than `gemini-3.6-flash`; it was
-  observed spelling 91.2% as "fifty-one point two" in Hindi before the digits rule and
-  the percentage guard were added. Prefer the larger model when quota allows.
+- **Free-tier Gemini quota is small and per model** — around 20 requests/day, and each
+  conversation turn costs **two** calls (one to classify intent, one to generate the
+  reply). That is roughly ten turns a day per model. When it runs out the app falls back
+  to templated English replies and logs `Gemini quota exhausted` rather than crashing.
+  Set `GEMINI_MODEL` to a different model or enable billing before a live demo.
+- **Smaller models are visibly weaker.** `gemini-3.5-flash-lite` was observed rendering
+  91.2% as "fifty-one point two" in Hindi. That specific failure is now caught — personas
+  require digits and `_invents_a_percentage` discards any reply whose figures disagree
+  with the tool — but prefer a larger model where quota allows.
+- **Real-time conversation is turn-based.** No token streaming and no barge-in: you
+  cannot interrupt the avatar mid-sentence. The brief hedges this with "where technically
+  possible", but it is the most visible gap.
+- **Facial expressions are state-based, not emotional.** The avatar reacts to idle /
+  listening / thinking / speaking, not to whether the news is good or bad.
+- **Not deployed.** Runnable locally, which the brief permits, but there is no public URL.
 - **The avatar is an inline SVG rig, not a Lottie/Rive file.** Same viseme contract, one
   fewer asset pipeline. Swap point is `components/Avatar/AvatarFace.tsx`.
 - **Pending escalation offers are held in process memory** (`app/graph/pending.py`), because
@@ -297,9 +370,11 @@ English** even when the language is correctly detected as Hindi or Tamil. Set
   schools have term boundaries and holiday calendars; this does not.
 - **STT expects `webm/opus`**, which is what Chrome's MediaRecorder produces. Safari
   records in a different container and needs a transcode step.
-- **No streaming.** Replies arrive whole; there is no token-by-token typing effect.
+- **Reseeding is destructive by design.** `make seed` wipes conversations, escalations
+  and the audit log. User IDs are fixed (matching `infra/supabase/seed.sql`) so existing
+  sessions survive, but anything the demo created is gone.
 
-## 8. Troubleshooting
+## 9. Troubleshooting
 
 **"Voice needs Google Cloud credentials on the backend"** — the frontend shows this on any
 503 from `/api/voice/*`. Check the real reason:
@@ -321,16 +396,39 @@ free-tier quota is gone, so change `GEMINI_MODEL` in `.env`.
 `RESPONSE_MAX_TOKENS` and `THINKING_BUDGET` in `app/llm/gemini.py` control this, and a
 truncated reply is detected and replaced with the templated one rather than shown.
 
+**"Your session has expired" / unexplained 401s** — a token outlives the row it points
+at if the database is reseeded with different user IDs. `seed.py` now uses the fixed IDs
+in `infra/supabase/seed.sql` so this should not recur; if it does, sign out and back in.
+Note the failure surfaces on *whatever call you happen to make next*, so read the status
+code in the backend log rather than trusting the feature that reported it.
+
+**A model returns 503 "high demand"** — popular models get busy. `_call_with_retry` in
+`app/llm/gemini.py` retries transient 5xx three times with backoff; quota errors (429) are
+deliberately not retried, since those need a different model rather than patience.
+
 **Everything answers in the wrong language** — the classifier's `detected_language`
 overrides the stored preference for that turn. Set the language explicitly in the header
 switcher to pin it.
 
-## 9. Demo video
+## 10. Demo video
 
-_(link to be added)_
+**▶ _(link to be added)_**
 
-Suggested run order: student attendance → parent attendance → "what about yesterday?"
-(memory) → parent asks about another family's child (refused) → escalation offer, confirm,
-ticket → teacher marks Rahul absent → teacher tries a Class 8B student (refused) →
-principal analytics → principal asks for an individual record (refused) → "ignore previous
-instructions…" (refused) → a Hindi turn with voice.
+The run order below is what the video follows. `make demo` prints the same scenarios as a
+transcript, including the escalation-failure path, if you would rather read than watch.
+
+| # | Role | Shown |
+|---|---|---|
+| 1 | Student | "What is my attendance?" → 91.2%, the brief's own example figure |
+| 2 | Parent | "How much attendance does my child have?" — the child is resolved from the database, never named by the user |
+| 3 | Parent | "What about yesterday?" — memory: no child, no topic restated |
+| 4 | Parent | Asks about another family's child → refused, and the refusal confirms nothing about whether that student exists |
+| 5 | Parent | "I'm not satisfied" → both routes offered by name → confirm → real ticket reference |
+| 6 | Teacher | "Mark Rahul absent today." → natural language to a database write |
+| 7 | Teacher | Tries a Class 8B student → refused; the tool re-checks the class relationship |
+| 8 | Principal | "What is the overall attendance?" → aggregates only, no student named |
+| 9 | Any | "Ignore previous instructions…" → refused in code; *Show pipeline* reveals the nine graph nodes |
+| 10 | Parent | A Hindi turn with voice and avatar lip-sync |
+
+Record step 6 **after** steps 1–5, or reseed afterwards: marking Rahul absent moves him
+off the 91.2% that matches the brief.

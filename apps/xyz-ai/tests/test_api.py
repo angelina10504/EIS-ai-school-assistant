@@ -148,3 +148,38 @@ def test_unsupported_language_is_rejected(client, login):
         "/api/session/language", json={"language": "fr"}, headers=rahul["headers"]
     )
     assert response.status_code == 400
+
+
+def test_transient_model_errors_are_retried(monkeypatch):
+    """A busy model must not silently degrade the reply — 503 is retried, 429 is not."""
+    from app.llm import gemini as gemini_module
+
+    class FakeClient:
+        def __init__(self, failures, error):
+            self.calls = 0
+            self.failures = failures
+            self.error = error
+            self.models = self
+
+        def generate_content(self, **_kwargs):
+            self.calls += 1
+            if self.calls <= self.failures:
+                raise RuntimeError(self.error)
+            return "ok"
+
+    provider = gemini_module.GeminiProvider.__new__(gemini_module.GeminiProvider)
+    monkeypatch.setattr(gemini_module.time, "sleep", lambda _s: None)
+
+    # Two 503s then success — the caller never sees the wobble.
+    provider._client = FakeClient(2, "503 UNAVAILABLE high demand")
+    provider._model = "test-model"
+    assert provider._call_with_retry(object(), []) == "ok"
+    assert provider._client.calls == 3
+
+    # Quota is not transient: fail immediately rather than burn the budget.
+    provider._client = FakeClient(5, "429 RESOURCE_EXHAUSTED")
+    import pytest as _pytest
+
+    with _pytest.raises(RuntimeError):
+        provider._call_with_retry(object(), [])
+    assert provider._client.calls == 1

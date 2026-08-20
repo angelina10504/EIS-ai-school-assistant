@@ -28,20 +28,31 @@ from app.db.session import create_all, db_session
 DEMO_PASSWORD = "password123"
 SCHOOL_DAYS = 34  # weekdays of history
 
+# Fixed UUIDs, matching infra/supabase/seed.sql exactly. Random ids would change on
+# every reseed, invalidating any JWT already issued — which logs you out of the app
+# the moment you refresh the demo data.
+ID = {
+    "principal": "00000000-0000-4000-8000-000000000001",
+    "anita": "00000000-0000-4000-8000-000000000002",
+    "vikram": "00000000-0000-4000-8000-000000000003",
+    "8A": "00000000-0000-4000-8000-0000000000a1",
+    "8B": "00000000-0000-4000-8000-0000000000a2",
+}
+
 # name, email, absent-day offsets, late-day offsets (indexes into the weekday list)
 STUDENT_PLAN = [
-    ("Rahul Verma", "rahul@student.xyz.edu", "8A-01", "8A", [6, 19], [11, 27]),
-    ("Priya Nair", "priya@student.xyz.edu", "8A-02", "8A", [3], [22]),
-    ("Arjun Nair", "arjun@student.xyz.edu", "8A-03", "8A", [1, 2, 9, 14, 20, 25, 30], [8]),
-    ("Sneha Kulkarni", "sneha@student.xyz.edu", "8B-01", "8B", [12], []),
-    ("Imran Khan", "imran@student.xyz.edu", "8B-02", "8B", [4, 5, 17], [21, 29]),
-    ("Divya Reddy", "divya@student.xyz.edu", "8B-03", "8B", [7, 16, 23, 28], [2, 13]),
+    ("00000000-0000-4000-8000-000000000011", "Rahul Verma", "rahul@student.xyz.edu", "8A-01", "8A", [6, 19], [11, 27]),
+    ("00000000-0000-4000-8000-000000000012", "Priya Nair", "priya@student.xyz.edu", "8A-02", "8A", [3], [22]),
+    ("00000000-0000-4000-8000-000000000013", "Arjun Nair", "arjun@student.xyz.edu", "8A-03", "8A", [1, 2, 9, 14, 20, 25, 30], [8]),
+    ("00000000-0000-4000-8000-000000000014", "Sneha Kulkarni", "sneha@student.xyz.edu", "8B-01", "8B", [12], []),
+    ("00000000-0000-4000-8000-000000000015", "Imran Khan", "imran@student.xyz.edu", "8B-02", "8B", [4, 5, 17], [21, 29]),
+    ("00000000-0000-4000-8000-000000000016", "Divya Reddy", "divya@student.xyz.edu", "8B-03", "8B", [7, 16, 23, 28], [2, 13]),
 ]
 
 PARENT_PLAN = [
-    ("Sunita Verma", "sunita@parent.xyz.edu", ["Rahul Verma"]),
-    ("Ramesh Nair", "ramesh@parent.xyz.edu", ["Priya Nair", "Arjun Nair"]),
-    ("Farah Khan", "farah@parent.xyz.edu", ["Imran Khan"]),
+    ("00000000-0000-4000-8000-000000000021", "Sunita Verma", "sunita@parent.xyz.edu", ["Rahul Verma"]),
+    ("00000000-0000-4000-8000-000000000022", "Ramesh Nair", "ramesh@parent.xyz.edu", ["Priya Nair", "Arjun Nair"]),
+    ("00000000-0000-4000-8000-000000000023", "Farah Khan", "farah@parent.xyz.edu", ["Imran Khan"]),
 ]
 
 
@@ -74,6 +85,7 @@ def reset(session) -> None:
 
 def seed(session) -> dict:
     principal = User(
+        id=ID["principal"],
         role="principal",
         name="Dr. Meera Iyer",
         email="principal@xyz.edu",
@@ -81,6 +93,7 @@ def seed(session) -> dict:
         preferred_language="en",
     )
     anita = User(
+        id=ID["anita"],
         role="teacher",
         name="Anita Sharma",
         email="anita@teacher.xyz.edu",
@@ -88,6 +101,7 @@ def seed(session) -> dict:
         preferred_language="en",
     )
     vikram = User(
+        id=ID["vikram"],
         role="teacher",
         name="Vikram Rao",
         email="vikram@teacher.xyz.edu",
@@ -97,8 +111,8 @@ def seed(session) -> dict:
     session.add_all([principal, anita, vikram])
     session.flush()
 
-    class_8a = Class(name="Class 8A", teacher_id=anita.id)
-    class_8b = Class(name="Class 8B", teacher_id=vikram.id)
+    class_8a = Class(id=ID["8A"], name="Class 8A", teacher_id=anita.id)
+    class_8b = Class(id=ID["8B"], name="Class 8B", teacher_id=vikram.id)
     session.add_all([class_8a, class_8b])
     session.flush()
     classes = {"8A": class_8a, "8B": class_8b}
@@ -106,8 +120,9 @@ def seed(session) -> dict:
     days = weekdays_back(SCHOOL_DAYS)
     students: dict[str, Student] = {}
 
-    for name, email, roll, class_key, absents, lates in STUDENT_PLAN:
+    for user_id, name, email, roll, class_key, absents, lates in STUDENT_PLAN:
         user = User(
+            id=user_id,
             role="student",
             name=name,
             email=email,
@@ -130,8 +145,9 @@ def seed(session) -> dict:
                 )
             )
 
-    for name, email, children in PARENT_PLAN:
+    for parent_id, name, email, children in PARENT_PLAN:
         parent = User(
+            id=parent_id,
             role="parent",
             name=name,
             email=email,
