@@ -10,7 +10,7 @@ import logging
 from dataclasses import dataclass
 
 from app.i18n.languages import LANGUAGES, bcp47
-from app.voice.resilience import call_with_retry, is_transient
+from app.voice.resilience import RPC_TIMEOUT_SECONDS, call_with_retry, is_transient
 
 logger = logging.getLogger(__name__)
 
@@ -44,10 +44,16 @@ def _client():
                 path = BASE_DIR / path
             if path.exists():
                 creds = service_account.Credentials.from_service_account_file(str(path))
-                return speech.SpeechClient(credentials=creds), speech
-        from app.config import get_settings
-
-        return speech.SpeechClient(transport=get_settings().speech_transport), speech
+                # transport must be set on *every* construction path, not just the
+                # fallback — gRPC stalls or fails on a broken IPv6 route.
+                return (
+                    speech.SpeechClient(credentials=creds, transport=settings.speech_transport),
+                    speech,
+                )
+        return (
+            speech.SpeechClient(transport=settings.speech_transport),
+            speech,
+        )
     except Exception as exc:  # pragma: no cover - missing/invalid credentials
         from app.config import get_settings
 
@@ -62,7 +68,9 @@ def _client():
 def _recognize(client, speech, config, audio_bytes, *, what: str):
     return call_with_retry(
         lambda: client.recognize(
-            config=config, audio=speech.RecognitionAudio(content=audio_bytes)
+            config=config,
+            audio=speech.RecognitionAudio(content=audio_bytes),
+            timeout=RPC_TIMEOUT_SECONDS,
         ),
         what=what,
     )

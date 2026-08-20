@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 RETRY_ATTEMPTS = 3
 RETRY_BACKOFF_SECONDS = 0.5
+# Per-attempt ceiling passed to the Google client.
+RPC_TIMEOUT_SECONDS = 12.0
 
 T = TypeVar("T")
 

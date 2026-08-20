@@ -12,7 +12,7 @@ import re
 from dataclasses import dataclass
 
 from app.i18n.languages import bcp47, get_language
-from app.voice.resilience import call_with_retry, is_transient
+from app.voice.resilience import RPC_TIMEOUT_SECONDS, call_with_retry, is_transient
 
 logger = logging.getLogger(__name__)
 
@@ -69,10 +69,16 @@ def _client():
                 path = BASE_DIR / path
             if path.exists():
                 creds = service_account.Credentials.from_service_account_file(str(path))
-                return texttospeech.TextToSpeechClient(credentials=creds), texttospeech
-        from app.config import get_settings
-
-        return texttospeech.TextToSpeechClient(transport=get_settings().speech_transport), texttospeech
+                # transport must be set on *every* construction path, not just the
+                # fallback — gRPC stalls or fails on a broken IPv6 route.
+                return (
+                    texttospeech.TextToSpeechClient(credentials=creds, transport=settings.speech_transport),
+                    texttospeech,
+                )
+        return (
+            texttospeech.TextToSpeechClient(transport=settings.speech_transport),
+            texttospeech,
+        )
     except Exception as exc:  # pragma: no cover - missing/invalid credentials
         from app.config import get_settings
 
@@ -107,7 +113,7 @@ def synthesize(text: str, language: str = "en") -> Speech:
     )
     try:
         response = call_with_retry(
-            lambda: client.synthesize_speech(request=request), what="Text-to-Speech"
+            lambda: client.synthesize_speech(request=request, timeout=RPC_TIMEOUT_SECONDS), what="Text-to-Speech"
         )
     except Exception as exc:
         # A named voice may not exist in every region; fall back to the locale's
@@ -124,7 +130,7 @@ def synthesize(text: str, language: str = "en") -> Speech:
         request.voice = tts.VoiceSelectionParams(language_code=bcp47(language))
         try:
             response = call_with_retry(
-                lambda: client.synthesize_speech(request=request), what="Text-to-Speech (default voice)"
+                lambda: client.synthesize_speech(request=request, timeout=RPC_TIMEOUT_SECONDS), what="Text-to-Speech (default voice)"
             )
         except Exception as inner:
             raise SpeechUnavailable(
